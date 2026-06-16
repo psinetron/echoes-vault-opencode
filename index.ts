@@ -95,8 +95,8 @@ The memory system has been initialized. Use your file reading tool to read the c
 If the index is empty or missing, acknowledge the initialization of a fresh vault. Otherwise, acknowledge your understanding of these rules with a brief message and list the key concepts already present in the index.
 `
 
-const ECHOES_RESUME_COMMAND = `---
-description: Restore context from EchoesVault/daily/ and EchoesVault/index.md
+const ECHOES_START_COMMAND = `---
+description: Start a new session — restore context from EchoesVault/daily/ and EchoesVault/index.md
 agent: build
 ---
 
@@ -126,8 +126,8 @@ Here is the concatenated work log from our LAST 3 SESSIONS (\`EchoesVault/daily/
 2. **Linting:** Briefly review the \`<index>\`. Do you spot any duplicate concepts, obvious contradictions, or orphan topics that should be merged? If so, propose a quick refactoring plan. If the index is clean, simply say: "Index is healthy. Ready to code."
 `
 
-const ECHOES_SAVE_COMMAND = `---
-description: Save session memory to EchoesVault via tool commit_memory_to_echoes_vault
+const ECHOES_END_COMMAND = `---
+description: End the session — save memory to EchoesVault via tool commit_memory_to_echoes_vault
 agent: build
 ---
 
@@ -220,8 +220,8 @@ Use this tool when a new global concept has been defined or an existing componen
 const ensureCommands = async (directory: string): Promise<void> => {
   const commands: Record<string, string> = {
     "echoes-init.md": ECHOES_INIT_COMMAND,
-    "echoes-resume.md": ECHOES_RESUME_COMMAND,
-    "echoes-save.md": ECHOES_SAVE_COMMAND,
+    "echoes-start.md": ECHOES_START_COMMAND,
+    "echoes-end.md": ECHOES_END_COMMAND,
   }
   const cmdDir = path.join(directory, ".opencode", "commands")
   await fs.mkdir(cmdDir, { recursive: true })
@@ -282,8 +282,8 @@ export const OpenCodeEchoes: Plugin = async ({ directory }) => {
     config: async (input) => {
       const cmds: Record<string, string> = {
         "echoes-init": ECHOES_INIT_COMMAND,
-        "echoes-resume": ECHOES_RESUME_COMMAND,
-        "echoes-save": ECHOES_SAVE_COMMAND,
+        "echoes-start": ECHOES_START_COMMAND,
+        "echoes-end": ECHOES_END_COMMAND,
       }
       input.command = input.command || {}
       for (const [name, cmd] of Object.entries(cmds)) {

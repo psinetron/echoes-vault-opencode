@@ -15,7 +15,7 @@ AI agents forget everything when a session ends. EchoesVault gives OpenCode a pe
 ## Features
 
 - **Google OKF Compliant** — EchoesVault uses Google's [Open Knowledge Format (OKF)](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf) under the hood. Your knowledge base is 100% interoperable with standard AI parsers and renders natively on GitHub and GitLab.
-- **Zero context loss** — start every session exactly where you left off. `/echoes-resume` reads the last 3 daily logs and the full knowledge index and feeds them to the AI automatically.
+- **Zero context loss** — start every session exactly where you left off. `/echoes-start` reads the last 3 daily logs and the full knowledge index and feeds them to the AI automatically.
 - **Zero setup** — on first load the plugin creates the entire vault structure, slash commands, and agent skills by itself. Nothing to configure.
 - **Obsidian-compatible vault** — `EchoesVault/` is a valid Obsidian vault. Open it in Obsidian at any time for visual navigation, graph view, and search.
 - **ADR-style documentation** — the AI is instructed to write with maximum technical density: API contracts, configuration records, and Architectural Decision Records — not chat transcripts.
@@ -75,7 +75,7 @@ The AI reads `EchoesVault/index.md`, acknowledges the rules, and lists any exist
 
 **2. Start of every subsequent session — restore context:**
 ```
-/echoes-resume
+/echoes-start
 ```
 Reads the last 3 daily logs and the full index, then summarizes where you left off and what the immediate next steps are. Also lints the index for duplicates or contradictions.
 
@@ -86,7 +86,7 @@ Reads the last 3 daily logs and the full index, then summarizes where you left o
 
 **4. End of session — save everything:**
 ```
-/echoes-save
+/echoes-end
 ```
 The AI distills the session into a dense technical summary, writes new encyclopedia pages for any concepts decided today, and updates the index. All via a single tool call.
 
@@ -97,8 +97,8 @@ The AI distills the session into a dense technical summary, writes new encyclope
 | Command | Description |
 |---|---|
 | `/echoes-init` | Initialize the vault and brief the AI on the knowledge base rules |
-| `/echoes-resume` | Restore context from the last 3 daily logs and the index |
-| `/echoes-save` | Distill and commit session memory to the vault |
+| `/echoes-start` | Start session — restore context from the last 3 daily logs and the index |
+| `/echoes-end` | End session — distill and commit session memory to the vault |
 
 ### AI tools reference
 
