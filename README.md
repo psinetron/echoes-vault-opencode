@@ -99,6 +99,7 @@ The AI distills the session into a dense technical summary, writes new encyclope
 | `/echoes-init` | Initialize the vault and brief the AI on the knowledge base rules |
 | `/echoes-start` | Start session — restore context from the last 3 daily logs and the index |
 | `/echoes-end` | End session — distill and commit session memory to the vault |
+| `/echoes-status` | Report vault health, statistics, and scalability |
 
 ### AI tools reference
 
