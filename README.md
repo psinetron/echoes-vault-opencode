@@ -52,6 +52,15 @@ status: active
 
 ## Installation
 
+### Via OpenCode UI (recommended)
+
+1. Press <kbd>⌘ Cmd</kbd> + <kbd>P</kbd> (or <kbd>Ctrl</kbd> + <kbd>P</kbd> on Windows/Linux) to open the command palette
+2. Select **Install plugin**
+3. Enter the package name: `echoes-vault-opencode`
+4. Restart OpenCode
+
+### Manual
+
 Add the plugin to your `opencode.json`:
 
 ```json
