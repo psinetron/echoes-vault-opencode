@@ -1,6 +1,6 @@
 {
   "name": "echoes-vault-opencode",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "EchoesVault — persistent memory plugin for OpenCode. Obsidian-style knowledge base with daily logs, encyclopedia pages, and session resumption.",
   "type": "module",
   "main": "index.ts",
