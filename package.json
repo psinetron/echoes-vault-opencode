@@ -1,0 +1,30 @@
+{
+  "name": "echoes-vault-opencode",
+  "version": "1.0.1",
+  "description": "EchoesVault — persistent memory plugin for OpenCode. Obsidian-style knowledge base with daily logs, encyclopedia pages, and session resumption.",
+  "type": "module",
+  "main": "index.ts",
+  "files": [
+    "index.ts"
+  ],
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "memory",
+    "knowledge-base",
+    "obsidian",
+    "vault"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@opencode-ai/plugin": ">=1.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/psinetron/echoes-vault-opencode.git"
+  }
+}
