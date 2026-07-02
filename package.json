@@ -8,10 +8,15 @@
     "./server": {
       "import": "./index.ts",
       "types": "./index.ts"
+    },
+    "./tui": {
+      "import": "./tui.ts",
+      "types": "./tui.ts"
     }
   },
   "files": [
-    "index.ts"
+    "index.ts",
+    "tui.ts"
   ],
   "keywords": [
     "opencode",
