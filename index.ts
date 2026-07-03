@@ -19,6 +19,57 @@ type VaultPaths = {
   assets: string
 }
 
+type EchoesState = {
+  version: number
+  pluginVersion: string
+  initialized: boolean
+  session: {
+    started: boolean
+    saved: boolean
+    lastStart: string | null
+    lastSave: string | null
+  }
+}
+
+const STATE_FILENAME = ".opencode/echoes-state.json"
+
+const getPluginVersion = async (): Promise<string> => {
+  try {
+    const pkgPath = path.join(path.dirname(new URL(import.meta.url).pathname), "package.json")
+    const pkg = JSON.parse(await fs.readFile(pkgPath, "utf-8"))
+    return pkg.version || "0.0.0"
+  } catch {
+    return "0.0.0"
+  }
+}
+
+const defaultState = (): EchoesState => ({
+  version: 1,
+  pluginVersion: "0.0.0",
+  initialized: false,
+  session: {
+    started: false,
+    saved: false,
+    lastStart: null,
+    lastSave: null,
+  },
+})
+
+const readState = async (directory: string): Promise<EchoesState> => {
+  try {
+    const raw = await fs.readFile(path.join(directory, STATE_FILENAME), "utf-8")
+    return JSON.parse(raw) as EchoesState
+  } catch {
+    return defaultState()
+  }
+}
+
+const writeState = async (directory: string, state: EchoesState): Promise<void> => {
+  const filePath = path.join(directory, STATE_FILENAME)
+  await fs.mkdir(path.dirname(filePath), { recursive: true })
+  await fs.writeFile(filePath, JSON.stringify(state, null, 2))
+}
+
 const resolveVaultPaths = (directory: string): VaultPaths => {
   const vault = path.join(directory, "EchoesVault")
   return {
@@ -91,7 +142,9 @@ You are an AI developer agent equipped with persistent memory. Your memory is a 
 
 ## \ud83d\ude80 ACTION
 
-The memory system has been initialized. Use your file reading tool to read the current \`EchoesVault/index.md\`. 
+**Step 0:** Call the \`echoes_activate_vault\` tool immediately to register the vault as activated in the status tracker.
+
+Then use your file reading tool to read the current \`EchoesVault/index.md\`.
 If the index is empty or missing, acknowledge the initialization of a fresh vault. Otherwise, acknowledge your understanding of these rules with a brief message and list the key concepts already present in the index.
 `
 
@@ -122,6 +175,7 @@ Here is the concatenated work log from our LAST 3 SESSIONS (\`EchoesVault/daily/
 </recent_logs>
 
 ## ACTION
+0. **Register:** Call the \`echoes_start_session\` tool immediately to mark this session as started in the status tracker.
 1. **Restore:** Analyze the \`<recent_logs>\` to understand the current trajectory. Briefly summarize where we left off and what our immediate next steps should be today.
 2. **Linting:** Briefly review the \`<index>\`. Do you spot any duplicate concepts, obvious contradictions, or orphan topics that should be merged? If so, propose a quick refactoring plan. If the index is clean, simply say: "Index is healthy. Ready to code."
 `
@@ -317,6 +371,12 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
   await ensureCommands(directory)
   await ensureSkills(directory)
 
+  const state = await readState(directory)
+  state.pluginVersion = await getPluginVersion()
+  state.session.started = false
+  state.session.saved = false
+  await writeState(directory, state)
+
   return {
     config: async (input) => {
       const cmds: Record<string, string> = {
@@ -415,6 +475,11 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
           }
 
           await fs.writeFile(idxFile, indexContent)
+
+          const st = await readState(directory)
+          st.session.saved = true
+          st.session.lastSave = new Date().toISOString()
+          await writeState(directory, st)
 
           return [
             `✅ Memory committed to EchoesVault.`,
@@ -528,6 +593,30 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
             parts.push(`📑 Index: synced`)
           }
           return parts.join("\n")
+        },
+      }),
+      echoes_activate_vault: tool({
+        description:
+          "Mark the EchoesVault as activated. Called automatically during /echoes-init to register the vault in the status tracker.",
+        args: {},
+        async execute(_args, _ctx) {
+          const st = await readState(directory)
+          st.initialized = true
+          await writeState(directory, st)
+          return "EchoesVault activated."
+        },
+      }),
+      echoes_start_session: tool({
+        description:
+          "Mark the current EchoesVault session as started. Called automatically during /echoes-start to update the status tracker.",
+        args: {},
+        async execute(_args, _ctx) {
+          const st = await readState(directory)
+          st.session.started = true
+          st.session.saved = false
+          st.session.lastStart = new Date().toISOString()
+          await writeState(directory, st)
+          return "EchoesVault session started."
         },
       }),
     },
