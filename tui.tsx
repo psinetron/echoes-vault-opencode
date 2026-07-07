@@ -14,6 +14,11 @@ type EchoesState = {
     lastStart: string | null
     lastSave: string | null
   }
+  stats?: {
+    totalPages: number
+    totalDailyLogs: number
+    deprecatedPages: number
+  }
 }
 
 const STATE_PATH = path.join(process.cwd(), ".opencode", "echoes-state.json")
@@ -54,6 +59,18 @@ const tui: TuiPlugin = async (api) => {
           return "Session Not Started"
         }
 
+        const vaultHealthColor = () => {
+          const pages = state()?.stats?.totalPages ?? 0
+          if (pages > 200) return theme.error
+          if (pages >= 170) return theme.warning
+          return theme.success
+        }
+
+        const vaultUsagePercent = () => {
+          const pages = state()?.stats?.totalPages ?? 0
+          return Math.round((pages / 200) * 100)
+        }
+
         const statusDesc = () => {
           const s = state()
           if (!s || !s.initialized) return null
@@ -78,6 +95,26 @@ const tui: TuiPlugin = async (api) => {
           return "to load context"
         }
 
+        const vaultHealthSection = () => {
+          const s = state()
+          if (!s || !s.initialized) return null
+          const pages = s.stats?.totalPages ?? 0
+          return (
+            <box flexDirection="column">
+              <text>{""}</text>
+              <box flexDirection="row">
+                <text fg={vaultHealthColor()}>{"• "}</text>
+                <text fg={theme.text}><b>Vault Health</b></text>
+              </box>
+              <text fg={theme.textMuted}>{"Pages: "}{pages}</text>
+              <text fg={theme.textMuted}>{"Usage: "}{vaultUsagePercent()}{"%"}</text>
+              {pages > 200 ? (
+                <text fg={theme.textMuted}>{"Consider migrating to RAG"}</text>
+              ) : null}
+            </box>
+          )
+        }
+
         return (
           <box flexDirection="column">
             <box flexDirection="row">
@@ -97,6 +134,7 @@ const tui: TuiPlugin = async (api) => {
                 <text fg={theme.textMuted}> {statusCmdHint()}</text>
               </box>
             )}
+            {vaultHealthSection()}
           </box>
         )
       },

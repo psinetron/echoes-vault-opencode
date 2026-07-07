@@ -19,6 +19,12 @@ type VaultPaths = {
   assets: string
 }
 
+type VaultStats = {
+  totalPages: number
+  totalDailyLogs: number
+  deprecatedPages: number
+}
+
 type EchoesState = {
   version: number
   pluginVersion: string
@@ -29,6 +35,7 @@ type EchoesState = {
     lastStart: string | null
     lastSave: string | null
   }
+  stats: VaultStats
 }
 
 const STATE_FILENAME = ".opencode/echoes-state.json"
@@ -52,6 +59,11 @@ const defaultState = (): EchoesState => ({
     saved: false,
     lastStart: null,
     lastSave: null,
+  },
+  stats: {
+    totalPages: 0,
+    totalDailyLogs: 0,
+    deprecatedPages: 0,
   },
 })
 
@@ -86,6 +98,36 @@ const ensureVaultDirs = async (paths: VaultPaths): Promise<void> => {
   await fs.mkdir(paths.pages, { recursive: true })
   await fs.mkdir(paths.daily, { recursive: true })
   await fs.mkdir(paths.assets, { recursive: true })
+}
+
+const collectStats = async (vaultPaths: VaultPaths): Promise<VaultStats> => {
+  let totalPages = 0
+  let totalDailyLogs = 0
+  let deprecatedPages = 0
+
+  try {
+    const pageFiles = (await fs.readdir(vaultPaths.pages)).filter((f) => f.endsWith(".md"))
+    totalPages = pageFiles.length
+    for (const file of pageFiles) {
+      const content = await fs.readFile(path.join(vaultPaths.pages, file), "utf-8")
+      if (content.includes("DEPRECATED")) {
+        deprecatedPages++
+      }
+    }
+  } catch { /* pages dir may not exist yet */ }
+
+  try {
+    const dailyFiles = (await fs.readdir(vaultPaths.daily)).filter((f) => f.endsWith(".md"))
+    totalDailyLogs = dailyFiles.length
+  } catch { /* daily dir may not exist yet */ }
+
+  return { totalPages, totalDailyLogs, deprecatedPages }
+}
+
+const updateStats = async (directory: string, vaultPaths: VaultPaths): Promise<void> => {
+  const st = await readState(directory)
+  st.stats = await collectStats(vaultPaths)
+  await writeState(directory, st)
 }
 
 const DEFAULT_INDEX = `# EchoesVault Index
@@ -375,6 +417,7 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
   state.pluginVersion = await getPluginVersion()
   state.session.started = false
   state.session.saved = false
+  state.stats = await collectStats(paths)
   await writeState(directory, state)
 
   return {
@@ -479,6 +522,7 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
           const st = await readState(directory)
           st.session.saved = true
           st.session.lastSave = new Date().toISOString()
+          st.stats = await collectStats(paths)
           await writeState(directory, st)
 
           return [
@@ -506,6 +550,7 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
           const timestamp = new Date().toISOString()
           const entry = `### Scratchpad — ${timestamp}\n\n${args.logEntry}\n\n`
           await fs.appendFile(dailyFile, entry)
+          await updateStats(directory, paths)
           return `✅ Scratchpad note saved to EchoesVault/daily/${today}.md`
         },
       }),
@@ -587,6 +632,8 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
             }
           }
 
+          await updateStats(directory, paths)
+
           const action = existed ? "updated" : "created"
           const parts = [`✅ Page ${action}: EchoesVault/pages/${fileName}`]
           if (!existed && args.indexDescription) {
@@ -602,6 +649,7 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
         async execute(_args, _ctx) {
           const st = await readState(directory)
           st.initialized = true
+          st.stats = await collectStats(paths)
           await writeState(directory, st)
           return "EchoesVault activated."
         },

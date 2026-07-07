@@ -131,6 +131,18 @@ Skills guide the AI on *when* and *how* to use the tools above. They are loaded 
 | `echoes_search_vault_pages` | When to search the vault before generating code |
 | `echoes_create_or_update_page` | When to create vs. update a page, deprecation rules |
 
+## Updating
+
+Check the current version in the badge at the top of this page, then run:
+
+```
+opencode plugin echoes-vault-opencode@X.X.X --force
+```
+
+Replace `X.X.X` with the latest version from the [npm page](https://www.npmjs.com/package/echoes-vault-opencode?activeTab=versions). The `--force` flag is required to overwrite the cached version.
+
+After updating, restart OpenCode to apply the changes.
+
 ## Support the project
 
 EchoesVault is built on top of [OpenCode](https://opencode.ai/go?ref=EZW07YHVTG). If you find this plugin useful, consider subscribing to **OpenCode GO** — it unlocks unlimited usage and directly funds the platform this plugin depends on. There's a 50% discount available via [this link](https://opencode.ai/go?ref=EZW07YHVTG).
