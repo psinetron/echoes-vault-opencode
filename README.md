@@ -6,6 +6,7 @@
   [![npm version](https://img.shields.io/npm/v/echoes-vault-opencode.svg)](https://www.npmjs.com/package/echoes-vault-opencode)
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
   [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-blueviolet)](https://opencode.ai/docs/ecosystem)
+  [![BundleDex](https://bundledex.net/badge/echoes-vault-opencode.svg)](https://bundledex.net/bundles/echoes-vault-opencode/)
 </div>
 
 ---
