@@ -151,7 +151,7 @@ const toPageFilename = (name: string): string => {
 
 const toPageSlug = (filename: string): string => filename.replace(/\.md$/, "")
 
-const ECHOES_INIT_COMMAND = `---
+const ECHOES_INIT_FALLBACK = `---
 description: Initialize EchoesVault — create directory structure and index.md
 agent: build
 ---
@@ -190,7 +190,7 @@ Then use your file reading tool to read the current \`EchoesVault/index.md\`.
 If the index is empty or missing, acknowledge the initialization of a fresh vault. Otherwise, acknowledge your understanding of these rules with a brief message and list the key concepts already present in the index.
 `
 
-const ECHOES_START_COMMAND = `---
+const ECHOES_START_FALLBACK = `---
 description: Start a new session — restore context from EchoesVault/daily/ and EchoesVault/index.md
 agent: build
 ---
@@ -222,7 +222,7 @@ Here is the concatenated work log from our LAST 3 SESSIONS (\`EchoesVault/daily/
 2. **Linting:** Briefly review the \`<index>\`. Do you spot any duplicate concepts, obvious contradictions, or orphan topics that should be merged? If so, propose a quick refactoring plan. If the index is clean, simply say: "Index is healthy. Ready to code."
 `
 
-const ECHOES_END_COMMAND = `---
+const ECHOES_END_FALLBACK = `---
 description: End the session — save memory to EchoesVault via tool commit_memory_to_echoes_vault
 agent: build
 ---
@@ -244,7 +244,7 @@ Prepare the following payload for the skill:
 Compile these data points and execute the save function immediately!
 `
 
-const ECHOES_STATUS_COMMAND = `---
+const ECHOES_STATUS_FALLBACK = `---
 description: Report the current health, statistics, and scalability of the EchoesVault
 agent: build
 ---
@@ -282,7 +282,7 @@ Count the total number of topics in the index. If the total count is greater tha
 Keep your response under 90 words. Output strictly the dashboard (and the conditional alert if triggered). No conversational filler.
 `
 
-const APPEND_TO_DAILY_LOG_SKILL = `---
+const APPEND_TO_DAILY_LOG_FALLBACK = `---
 name: echoes_append_to_daily_log
 description: Append an intermediate technical note or decision to today's daily log immediately after completing a sub-task.
 ---
@@ -306,7 +306,7 @@ Do NOT use this tool randomly. You MUST invoke this tool IMMEDIATELY in the curr
 - \`logEntry\`: (String) The markdown-formatted bullet points to append.
 `
 
-const SEARCH_VAULT_PAGES_SKILL = `---
+const SEARCH_VAULT_PAGES_FALLBACK = `---
 name: echoes_search_vault_pages
 description: Search the EchoesVault for specific concepts, keywords, or implementation details.
 ---
@@ -327,7 +327,7 @@ You are the EchoesVault Keeper. If you encounter a concept, API, or architectura
 - \`query\`: (String) The specific keyword or short phrase to search for across the \`pages/\` directory.
 `
 
-const CREATE_OR_UPDATE_PAGE_SKILL = `---
+const CREATE_OR_UPDATE_PAGE_FALLBACK = `---
 name: echoes_create_or_update_page
 description: Atomically create a new markdown page or update an existing one in EchoesVault/pages/, automatically updating the index.
 ---
@@ -351,13 +351,7 @@ Use this tool when a new global concept has been defined or an existing componen
 - \`indexDescription\`: (String) A one-sentence description of the file. Required if this is a newly created file. Format: "- [[filename]]: description".
 `
 
-const ensureCommands = async (directory: string): Promise<void> => {
-  const commands: Record<string, string> = {
-    "echoes-init.md": ECHOES_INIT_COMMAND,
-    "echoes-start.md": ECHOES_START_COMMAND,
-    "echoes-end.md": ECHOES_END_COMMAND,
-    "echoes-status.md": ECHOES_STATUS_COMMAND,
-  }
+const ensureCommands = async (directory: string, commands: Record<string, string>): Promise<void> => {
   const cmdDir = path.join(directory, ".opencode", "commands")
   await fs.mkdir(cmdDir, { recursive: true })
   for (const [name, content] of Object.entries(commands)) {
@@ -370,12 +364,7 @@ const ensureCommands = async (directory: string): Promise<void> => {
   }
 }
 
-const ensureSkills = async (directory: string): Promise<void> => {
-  const skills: Record<string, string> = {
-    "echoes-append-to-daily-log": APPEND_TO_DAILY_LOG_SKILL,
-    "echoes-search-vault-pages": SEARCH_VAULT_PAGES_SKILL,
-    "echoes-create-or-update-page": CREATE_OR_UPDATE_PAGE_SKILL,
-  }
+const ensureSkills = async (directory: string, skills: Record<string, string>): Promise<void> => {
   for (const [name, content] of Object.entries(skills)) {
     const skillDir = path.join(directory, ".opencode", "skills", name)
     const skillFile = path.join(skillDir, "SKILL.md")
@@ -400,6 +389,37 @@ const parseCommandFrontmatter = (cmd: string): { template: string; description?:
 }
 
 const OpenCodeEchoes: Plugin = async ({ directory }) => {
+  const pluginDir = path.dirname(new URL(import.meta.url).pathname)
+
+  const readPromptFile = async (relativePath: string, fallback: string): Promise<string> => {
+    try {
+      return await fs.readFile(path.join(pluginDir, "prompts", relativePath), "utf-8")
+    } catch {
+      return fallback
+    }
+  }
+
+  const ECHOES_INIT = await readPromptFile("commands/echoes-init.md", ECHOES_INIT_FALLBACK)
+  const ECHOES_START = await readPromptFile("commands/echoes-start.md", ECHOES_START_FALLBACK)
+  const ECHOES_END = await readPromptFile("commands/echoes-end.md", ECHOES_END_FALLBACK)
+  const ECHOES_STATUS = await readPromptFile("commands/echoes-status.md", ECHOES_STATUS_FALLBACK)
+
+  const APPEND_TO_DAILY_LOG = await readPromptFile("skills/echoes-append-to-daily-log.md", APPEND_TO_DAILY_LOG_FALLBACK)
+  const SEARCH_VAULT_PAGES = await readPromptFile("skills/echoes-search-vault-pages.md", SEARCH_VAULT_PAGES_FALLBACK)
+  const CREATE_OR_UPDATE_PAGE = await readPromptFile("skills/echoes-create-or-update-page.md", CREATE_OR_UPDATE_PAGE_FALLBACK)
+
+  const commands: Record<string, string> = {
+    "echoes-init.md": ECHOES_INIT,
+    "echoes-start.md": ECHOES_START,
+    "echoes-end.md": ECHOES_END,
+    "echoes-status.md": ECHOES_STATUS,
+  }
+  const skills: Record<string, string> = {
+    "echoes-append-to-daily-log": APPEND_TO_DAILY_LOG,
+    "echoes-search-vault-pages": SEARCH_VAULT_PAGES,
+    "echoes-create-or-update-page": CREATE_OR_UPDATE_PAGE,
+  }
+
   const paths = resolveVaultPaths(directory)
   const indexFile = path.join(paths.vault, "index.md")
 
@@ -410,8 +430,8 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
     await fs.writeFile(indexFile, DEFAULT_INDEX)
   }
 
-  await ensureCommands(directory)
-  await ensureSkills(directory)
+  await ensureCommands(directory, commands)
+  await ensureSkills(directory, skills)
 
   const state = await readState(directory)
   state.pluginVersion = await getPluginVersion()
@@ -422,16 +442,10 @@ const OpenCodeEchoes: Plugin = async ({ directory }) => {
 
   return {
     config: async (input) => {
-      const cmds: Record<string, string> = {
-        "echoes-init": ECHOES_INIT_COMMAND,
-        "echoes-start": ECHOES_START_COMMAND,
-        "echoes-end": ECHOES_END_COMMAND,
-        "echoes-status": ECHOES_STATUS_COMMAND,
-      }
       input.command = input.command || {}
-      for (const [name, cmd] of Object.entries(cmds)) {
+      for (const [name, cmd] of Object.entries(commands)) {
         const { template, description, agent } = parseCommandFrontmatter(cmd)
-        input.command[name] = { template, description, agent }
+        input.command[name.replace(".md", "")] = { template, description, agent }
       }
     },
     tool: {

@@ -3,6 +3,6 @@ package-lock.json
 dist/
 EchoesVault/
 .opencode/
-skills/
+.skills/
 .idea/
 .DS_Store
