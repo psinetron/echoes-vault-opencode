@@ -136,6 +136,8 @@ Skills guide the AI on *when* and *how* to use the tools above. They are loaded 
 
 EchoesVault is built on top of [OpenCode](https://opencode.ai/go?ref=EZW07YHVTG). If you find this plugin useful, consider subscribing to **OpenCode GO** — it unlocks unlimited usage and directly funds the platform this plugin depends on. There's a 50% discount available via [this link](https://opencode.ai/go?ref=EZW07YHVTG).
 
+[![OKF BundleDex](https://bundledex.net/static-badge.svg)](https://bundledex.net)
+
 ## License
 
 [MIT](LICENSE)
