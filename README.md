@@ -157,6 +157,8 @@ Click the **Sponsor** button at the top of this repository (next to the Star but
 **3. OpenCode GO Subscription**
 EchoesVault is built on top of [OpenCode](https://opencode.ai/go?ref=EZW07YHVTG). By subscribing to **OpenCode GO**, you unlock unlimited agent usage. Using [this referral link](https://opencode.ai/go?ref=EZW07YHVTG) gives you a $5 discount on your subscription and helps fund my work at the same time.
 
+[![OKF BundleDex](https://bundledex.net/static-badge.svg)](https://bundledex.net)
+
 ## License
 
 [MIT](LICENSE)
